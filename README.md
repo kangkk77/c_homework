@@ -1,251 +1,184 @@
-# C/C++ 程序设计实践作业提交模板
+﻿# 题目 4：个人任务管理系统
 
----
-
-## 📋 学生信息
+## 学生信息
 
 | 项目 | 内容 |
 |------|------|
-| **学号** | 202513080172 |
-| **姓名** | [请填写您的姓名] |
-| **班级** | [请填写您的班级] |
-| **作业编号** | [请填写作业编号] |
-| **提交日期** | [请填写提交日期] |
+| 学号 | 202513080172 |
+| 姓名 | 待填写 |
+| 班级 | 待填写 |
+| 作业编号 | 题目 4 |
+| 提交日期 | 2026-04-20 |
 
----
+## 项目简介
 
-## 📁 目录结构
-作业仓库/
-├── README.md # 作业说明文档（本文件）
-├── src/ # 源代码目录（必须）
-│ ├── *.c # C 语言源文件
-│ ├── *.cpp # C++ 语言源文件
-│ ├── *.h # C 头文件
-│ └── *.hpp # C++ 头文件
-├── data/ # 测试数据目录（必须）
-│ ├── input.txt # 输入测试数据
-│ └── output.txt # 期望输出数据
-├── tests/ # 单元测试目录（可选）
-└── docs/ # 实验报告目录（可选）
-└── report.md # 实验报告
+本项目使用 C 语言实现了一个命令行版 Todo List，用于管理个人任务。程序支持：
 
-text
+- 添加任务：任务名称、优先级、截止日期、标签
+- 状态管理：进行中 / 已完成
+- 列表排序：默认按截止日期升序，日期相同时按优先级排序
+- 过期提醒：未完成且截止日期早于当前系统日期时显示 `OVERDUE`
+- 持久化：任务保存到 `data/tasks.txt`
+- 扩展支持：可按标签过滤显示
 
----
+## 目录结构
 
-## 📝 提交要求
+```text
+c_homework/
+|-- README.md
+|-- .gitignore
+|-- src/
+|   |-- main.c
+|   |-- task.c
+|   |-- task.h
+|   |-- storage.c
+|   `-- storage.h
+`-- data/
+    |-- input.txt
+    `-- tasks.txt
+```
 
-### ✅ 必须提交
-| 类型 | 要求 | 示例 |
-|------|------|------|
-| 源代码 | 所有 `.c`、`.cpp`、`.h` 文件放在 `src/` 目录 | `src/main.c` |
-| 测试数据 | 所有 `.txt` 文本数据文件放在 `data/` 目录 | `data/input.txt` |
-| 文档 | 填写完整的本 README.md 文件 | - |
+## 功能设计
 
-### ❌ 禁止提交
-- 编译产物：`*.exe`, `*.o`, `*.obj`, `*.out`
-- 二进制文件：图片、音频、视频
-- 压缩包：`*.zip`, `*.tar`, `*.gz`
-- IDE 配置：`.vscode/`, `.idea/`, `*.swp`
-- 临时文件：`*.tmp`, `*.log`, `*.bak`
+### 1. 添加任务
 
----
+命令格式：
 
-## 🚀 快速开始
-
-### 1. 克隆仓库到本地
 ```bash
-git clone git@172.16.37.119:repositories/stu_学号.git 作业目录
-cd 作业目录
-2. 添加您的代码
-bash
-# 将您的源文件复制到 src 目录
-cp ~/my_program.c src/
+todo add <name> <priority> <YYYY-MM-DD> [tag]
+```
 
-# 将测试数据复制到 data 目录
-cp ~/test_data.txt data/
-3. 编译程序
-C 语言编译：
+示例：
 
-bash
-gcc -Wall -g src/*.c -o program
-# 或指定源文件
-gcc -Wall -g src/main.c src/utils.c -o program
-C++ 语言编译：
+```bash
+todo add DraftProposal high 2026-04-24 study
+```
 
-bash
-g++ -Wall -g src/*.cpp -o program
-# 或指定源文件
-g++ -Wall -g src/main.cpp src/function.cpp -o program
-4. 运行程序
-bash
-# 直接运行
-./program
+说明：
 
-# 使用测试数据文件作为输入
-./program < data/input.txt
+- `priority` 支持 `high`、`medium`、`low`
+- `tag` 可选，未填写时默认为 `default`
+- 新任务创建后默认状态为 `in-progress`
+- 如果任务名包含空格，请使用引号，例如 `todo add "Finish report" high 2026-04-24 study`
 
-# 将输出保存到文件
-./program > data/my_output.txt
-5. 提交作业
-bash
-# 查看修改状态
+### 2. 查看任务
+
+命令格式：
+
+```bash
+todo list [tag]
+```
+
+示例：
+
+```bash
+todo list
+todo list study
+```
+
+说明：
+
+- 默认显示全部任务
+- 传入标签后只显示对应标签任务
+- 输出包含任务编号、名称、优先级、截止日期、状态、标签、提醒信息
+
+### 3. 更新任务状态
+
+命令格式：
+
+```bash
+todo update <id> <in-progress|completed>
+```
+
+示例：
+
+```bash
+todo update 1 completed
+```
+
+### 4. 排序规则
+
+- 先按截止日期从早到晚排序
+- 截止日期相同时，按优先级排序：`high > medium > low`
+- 若仍相同，再按任务编号排序
+
+### 5. 过期提醒
+
+若任务满足以下条件，列表中的 Reminder 字段会显示 `OVERDUE`：
+
+- 当前状态不是 `completed`
+- 截止日期早于当前系统日期
+
+## 数据持久化格式
+
+任务存储在 `data/tasks.txt` 中，每行一条记录，使用 `|` 分隔：
+
+```text
+id|name|priority|due_date|status|tag
+```
+
+示例：
+
+```text
+1|Finish README|high|2026-04-18|in-progress|study
+```
+
+## 编译与运行
+
+在项目根目录执行：
+
+```bash
+gcc -Wall -Wextra -pedantic src/main.c src/task.c src/storage.c -o todo
+```
+
+运行帮助：
+
+```bash
+./todo help
+```
+
+添加任务：
+
+```bash
+./todo add DraftProposal high 2026-04-24 study
+```
+
+查看任务：
+
+```bash
+./todo list
+```
+
+更新状态：
+
+```bash
+./todo update 1 completed
+```
+
+## 测试数据说明
+
+`data/tasks.txt` 预置了 3 条任务：
+
+- 一条已过期且未完成的任务，用于测试过期提醒
+- 一条已完成任务
+- 一条未来任务
+
+`data/input.txt` 给出了建议测试命令，方便手动验证。
+
+## 后续可扩展方向
+
+- 支持中文优先级输入映射
+- 支持按周 / 按天周期性任务生成
+- 支持删除任务、编辑任务
+- 支持更灵活的多词任务名输入
+
+## 提交说明
+
+首次提交建议流程：
+
+```bash
 git status
-
-# 添加所有文件
 git add .
-
-# 提交到本地仓库
-git commit -m "提交作业：完成第X次作业"
-
-# 推送到远程服务器
+git commit -m "feat: initialize todo cli project"
 git push origin master
-💡 代码示例
-C 语言示例
-c
-// src/example.c
-#include <stdio.h>
-#include <stdlib.h>
-
-/**
- * 计算两个整数的和
- * @param a 第一个整数
- * @param b 第二个整数
- * @return 两数之和
- */
-int add(int a, int b) {
-    return a + b;
-}
-
-int main() {
-    int x = 10, y = 20;
-    printf("%d + %d = %d\n", x, y, add(x, y));
-    return 0;
-}
-C++ 语言示例
-cpp
-// src/example.cpp
-#include <iostream>
-#include <string>
-using namespace std;
-
-class Calculator {
-public:
-    int add(int a, int b) {
-        return a + b;
-    }
-    
-    int subtract(int a, int b) {
-        return a - b;
-    }
-};
-
-int main() {
-    Calculator calc;
-    int a = 10, b = 5;
-    
-    cout << a << " + " << b << " = " << calc.add(a, b) << endl;
-    cout << a << " - " << b << " = " << calc.subtract(a, b) << endl;
-    
-    return 0;
-}
-头文件示例
-c
-// src/example.h
-#ifndef EXAMPLE_H
-#define EXAMPLE_H
-
-// 函数声明
-int add(int a, int b);
-int subtract(int a, int b);
-
-// 常量定义
-#define PI 3.14159
-#define MAX_SIZE 100
-
-#endif // EXAMPLE_H
-测试数据示例
-text
-# data/input.txt
-# 第一行：测试用例数量
-3
-# 测试数据：每行两个整数
-10 20
-30 40
-50 60
-📊 评分标准
-评分项	权重	要求
-代码正确性	40%	程序能正确运行，输出符合预期
-代码规范性	20%	命名规范、注释清晰、缩进整齐
-测试数据完整性	20%	提供充分的测试用例，覆盖边界情况
-文档完整性	20%	README 填写完整，实验报告详实
-🔧 常用 Git 命令
-命令	说明
-git status	查看当前文件状态
-git add <文件>	添加指定文件到暂存区
-git add .	添加所有修改的文件
-git commit -m "说明"	提交到本地仓库
-git push	推送到远程服务器
-git pull	拉取远程最新版本
-git log --oneline	查看提交历史
-git diff	查看文件修改差异
-❓ 常见问题
-Q1: 推送时提示 "rejected"
-bash
-# 先拉取最新代码再推送
-git pull origin master
-git push origin master
-Q2: 提交错了如何修改？
-bash
-# 修改最后一次提交
-git add .
-git commit --amend -m "新的提交信息"
-git push --force origin master
-Q3: 如何撤销未提交的修改？
-bash
-# 撤销所有未提交的修改
-git checkout .
-
-# 撤销指定文件
-git checkout -- src/main.c
-Q4: 如何查看某个文件的提交历史？
-bash
-git log --oneline src/main.c
-Q5: 忘记添加 .gitignore 怎么办？
-bash
-# 创建 .gitignore 后，清除已跟踪的错误文件
-git rm -r --cached *.exe
-git rm -r --cached *.o
-git add .gitignore
-git commit -m "Add .gitignore"
-📞 联系方式
-如有问题，请联系：
-
-老师邮箱：zgs@nuist.edu.cn
-
-答疑时间：每周三 14:00-16:00
-
-📝 作业提交检查清单
-在提交前，请确认以下事项：
-
-README.md 中的学生信息已填写完整
-
-所有源代码已放入 src/ 目录
-
-所有测试数据已放入 data/ 目录
-
-程序能正常编译通过
-
-程序运行结果正确
-
-没有提交编译产物（.exe、.o 等）
-
-没有提交临时文件（.tmp、.log 等）
-
-已执行 git add . 添加所有文件
-
-已执行 git commit 提交到本地
-
-已执行 git push 推送到服务器
-
-祝您作业顺利！ 🎉
+```

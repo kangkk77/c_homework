@@ -1,0 +1,3 @@
+1|Finish README|high|2026-04-18|in-progress|study
+2|Buy groceries|medium|2026-04-21|completed|life
+3|Prepare weekly report|low|2026-04-25|in-progress|work
